@@ -11,6 +11,7 @@ html,body{margin:0;height:100%}
 body{font-family:var(--sans);background:var(--ink);color:var(--text);-webkit-font-smoothing:antialiased;overflow:hidden}
 .app{display:flex;height:100dvh;width:100%}
 .sidebar{flex:0 0 376px;max-width:376px;background:var(--ink);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain}
+body.ui-hidden .sidebar{display:none}
 .sidebar::-webkit-scrollbar{width:9px}
 .sidebar::-webkit-scrollbar-thumb{background:rgba(150,186,201,.18);border-radius:8px;border:2px solid var(--ink)}
 .head{padding:22px 22px 16px;border-bottom:1px solid var(--line)}
@@ -152,6 +153,11 @@ body.editing .flybtn{opacity:.45;pointer-events:none}
 .tbtn.tplay:hover{filter:brightness(1.05)}
 .tscrub{width:240px;max-width:42vw;height:4px;accent-color:var(--brass);cursor:pointer}
 .ttime{font-family:var(--mono);font-size:11px;color:var(--text);min-width:88px;text-align:right;letter-spacing:.02em}
+.seekjump{position:absolute;left:50%;bottom:70px;transform:translateX(-50%);z-index:1250;display:flex;align-items:center;gap:8px;background:rgba(11,28,37,.92);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:14px;padding:7px 10px;box-shadow:0 14px 34px -14px rgba(0,0,0,.75)}
+.sj-input{width:64px;height:32px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--text);font-family:var(--mono);font-size:13px;text-align:center;padding:0 6px}
+.sj-input:focus{outline:none;border-color:var(--brass)}
+.sj-go{height:32px;padding:0 16px;border:none;border-radius:9px;background:linear-gradient(180deg,#e7b658,#cf9a3c);color:#1a1206;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.08em;cursor:pointer;transition:filter .12s}
+.sj-go:hover{filter:brightness(1.05)}
 .yffield{margin-top:16px}
 .yflabel{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
 .yearfilter{display:flex;flex-wrap:wrap;gap:6px}
@@ -161,7 +167,7 @@ body.editing .flybtn{opacity:.45;pointer-events:none}
 .fambtn{margin-top:14px;width:100%;background:linear-gradient(180deg,rgba(255,126,182,.16),rgba(255,90,60,.16));color:#ffd9e6;border:1px solid rgba(255,126,182,.5);border-radius:10px;padding:11px 10px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:border-color .12s,color .12s,background .12s}
 .fambtn:hover{border-color:rgba(255,126,182,.85);color:#fff}
 body.familymode .fambtn{background:rgba(255,90,60,.24);color:#fff;border-color:rgba(255,90,60,.75)}
-body.familymode .transport,body.familymode .yffield,body.familymode .editbtn,body.familymode .flyrow,body.familymode .legend,body.familymode #timeline{display:none}
+body.familymode .transport,body.familymode .seekjump,body.familymode .yffield,body.familymode .editbtn,body.familymode .flyrow,body.familymode .legend,body.familymode #timeline{display:none}
 .famtransport{display:none}
 .famlegend{display:none}
 .famtimeline{display:none}
@@ -323,6 +329,7 @@ body.familymode .famfilter{display:flex;flex-wrap:wrap;gap:6px;padding:14px 14px
   .logcard{top:104px;right:12px;left:auto;bottom:auto;width:min(340px,calc(100% - 24px));max-height:48vh}
   .editpanel{left:12px;right:12px;width:auto;bottom:14px;max-height:62vh;overflow:auto}
   .transport{bottom:12px;gap:7px;padding:7px 10px;border-radius:13px}
+  .seekjump{bottom:58px}
   .tscrub{width:36vw}
   .ttime{display:none}
   .title{font-size:40px}
@@ -332,6 +339,7 @@ body.familymode .famfilter{display:flex;flex-wrap:wrap;gap:6px;padding:14px 14px
 body.role-detail .sidebar,
 body.role-detail .menu-btn,
 body.role-detail .transport,
+body.role-detail .seekjump,
 body.role-detail .famtransport,
 body.role-detail #dualBtn,
 body.role-detail #welcomeBtn,

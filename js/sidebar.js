@@ -22,3 +22,7 @@ const r2=el('div','legend-row'); r2.append(el('div','legend-label','Route'));
 const o1=el('span','lg'); o1.append(el('span','ln')); o1.append(el('span',null,'1940\u201342 out')); r2.append(o1);
 const o2=el('span','lg'); const ln2=el('span','ln'); ln2.classList.add('v2'); o2.append(ln2); o2.append(el('span',null,'1944 back')); r2.append(o2);
 legendEl.append(r2);
+
+/* Hide the left sidebar/menu bar on demand (element stays in the DOM and functional). */
+function HideUI(){ document.body.classList.add('ui-hidden'); }
+window.HideUI=HideUI;
