@@ -122,7 +122,8 @@ function updateReached(idx){
 function updateCard(st){
   const key=st.transition?'transition':('s'+st.reached);
   if(key===lastCardKey) return; lastCardKey=key;
-  if(st.transition) showTransitionCard(); else showLogCard(STOPS[st.reached]);
+  if(st.transition){ showTransitionCard(); }
+  else { showLogCard(STOPS[st.reached]); notifyUnity('OnShipArrived', st.reached); }
 }
 
 /* ----- transport / playback ----- */

@@ -58,3 +58,9 @@ function inferStopType(s){
 }
 function fmtCoord(lat,lng){ const la=Math.abs(lat).toFixed(3)+'\u00b0'+(lat>=0?'N':'S'); const lo=Math.abs(lng).toFixed(3)+'\u00b0'+(lng>=0?'E':'W'); return la+'  '+lo; }
 function fmtDate(ms){ const d=new Date(ms); return d.getUTCDate()+' '+MONTHS[d.getUTCMonth()]+' '+d.getUTCFullYear(); }
+
+function notifyUnity(method, arg) {
+  if (window.uwb && typeof uwb.ExecuteJsMethod === 'function') {
+    uwb.ExecuteJsMethod(method, arg);
+  }
+}
