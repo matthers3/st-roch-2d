@@ -24,5 +24,13 @@ const o2=el('span','lg'); const ln2=el('span','ln'); ln2.classList.add('v2'); o2
 legendEl.append(r2);
 
 /* Hide the left sidebar/menu bar on demand (element stays in the DOM and functional). */
-function HideUI(){ document.body.classList.add('ui-hidden'); }
+function HideUI(){
+  document.body.classList.add('ui-hidden');
+  /* the map container just grew; let Leaflet recompute its size so the follow-cam re-centers correctly */
+  setTimeout(function(){
+    if(typeof map==='undefined' || !map) return;
+    map.invalidateSize();
+    if(typeof engaged!=='undefined' && engaged && typeof ship!=='undefined' && ship){ map.panTo(ship.getLatLng(), {animate:false}); }
+  }, 60);
+}
 window.HideUI=HideUI;
