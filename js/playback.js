@@ -202,18 +202,20 @@ function togglePlay(){ if(editing) return; if(playing) pause(); else play(); }
 function seekTo(t){ engage(); curT=Math.max(0,Math.min(t,totalT)); renderFrame(curT); if(playing) lastTs=0; }
 function stepStop(dir){ const r=Math.max(0,stateAt(curT).reached); const target=Math.max(0,Math.min(STOPS.length-1, r+dir)); seekTo(reachTimeArr[target]+0.001); }
 /* ----- jump to a chronological stop ----- */
-/* far jumps (>2 stops away) snap over a fixed 2 seconds; close jumps travel at normal voyage speed */
+/* far jumps (>2 stops away) snap over a fixed 2 seconds; close jumps travel at normal voyage speed.
+   speed: optional float multiplier on the movement (higher = faster, defaults to 1). */
 let goRaf=null;
-function goToStop(idx){
+function goToStop(idx, speed){
   if(editing) return;
   idx=Math.max(0, Math.min(STOPS.length-1, Math.round(Number(idx)||0)));
+  const spd=(Number(speed)>0)?Number(speed):1; // movement speed multiplier (higher = faster)
   pause();                                   // stop the normal play loop
   if(goRaf){ cancelAnimationFrame(goRaf); goRaf=null; }
   engage();                                  // reveal ship + voyage trail
   const startT=curT, endT=reachTimeArr[idx];
   const fromIdx=Math.max(0, stateAt(curT).reached);
   if(Math.abs(idx-fromIdx)>2){
-    const DUR=2000;                          // far away: compress into 2 seconds
+    const DUR=2000/spd;                      // far away: 2 seconds at speed 1, scaled by spd
     const ease=function(x){ return x<0.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2; }; // easeInOutCubic
     suppressFollow=true;                     // don't chase the ship; glide straight to the destination
     if(!IS_DETAIL && !reduceMotion){ map.panTo([STOPS[idx].lat,STOPS[idx].lng], {animate:true, duration:DUR/1000}); }
@@ -228,11 +230,11 @@ function goToStop(idx){
     }
     goRaf=requestAnimationFrame(step);
   } else {
-    const dir=endT>=startT?1:-1;             // close: travel at the natural voyage pace
+    const dir=endT>=startT?1:-1;             // close: travel at the natural voyage pace, scaled by spd
     let lt=0;
     function step(ts){
       if(!lt) lt=ts;
-      const dt=(ts-lt)*speedMul; lt=ts;
+      const dt=(ts-lt)*speedMul*spd; lt=ts;
       curT+=dir*dt;
       if((dir>0 && curT>=endT) || (dir<0 && curT<=endT)){ curT=endT; renderFrame(curT); goRaf=null; return; }
       renderFrame(curT);
