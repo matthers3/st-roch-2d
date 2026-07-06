@@ -212,13 +212,19 @@ function goToStop(idx, speed){
   pause();                                   // stop the normal play loop
   if(goRaf){ cancelAnimationFrame(goRaf); goRaf=null; }
   engage();                                  // reveal ship + voyage trail
+  const st0=stateAt(curT);
+  if(IS_DETAIL){ _detailZoomed=false; map.setView(st0.ll, DETAIL_Z, {animate:false}); _detailZoomed=true; }
+  else { map.setView(st0.ll, FOLLOW_Z, {animate:false}); }
   const startT=curT, endT=reachTimeArr[idx];
   const fromIdx=Math.max(0, stateAt(curT).reached);
   if(Math.abs(idx-fromIdx)>2){
     const DUR=2000/spd;                      // far away: 2 seconds at speed 1, scaled by spd
     const ease=function(x){ return x<0.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2; }; // easeInOutCubic
     suppressFollow=true;                     // don't chase the ship; glide straight to the destination
-    if(!IS_DETAIL && !reduceMotion){ map.panTo([STOPS[idx].lat,STOPS[idx].lng], {animate:true, duration:DUR/1000}); }
+    if(!reduceMotion){
+      const z=IS_DETAIL?DETAIL_Z:FOLLOW_Z;
+      map.setView([STOPS[idx].lat,STOPS[idx].lng], z, {animate:true, duration:DUR/1000});
+    }
     let s0=null;
     function step(ts){
       if(s0===null) s0=ts;
@@ -253,7 +259,9 @@ if(tScrub){
   tScrub.addEventListener('change', function(){ scrubbing=false; if(playing) lastTs=0; });
   tScrub.addEventListener('pointerup', function(){ scrubbing=false; });
 }
-const goStopInput=document.getElementById('goStopInput'), goStopBtn=document.getElementById('goStopBtn');
-if(goStopBtn)   goStopBtn.addEventListener('click', function(){ goToStop(parseInt(goStopInput.value,10)); });
-if(goStopInput) goStopInput.addEventListener('keydown', function(e){ if(e.key==='Enter') goToStop(parseInt(goStopInput.value,10)); });
+const goStopInput=document.getElementById('goStopInput'), goSpeedInput=document.getElementById('goSpeedInput'), goStopBtn=document.getElementById('goStopBtn');
+function runGoToStop(){ goToStop(parseInt(goStopInput.value,10), goSpeedInput?parseFloat(goSpeedInput.value):1); }
+if(goStopBtn)   goStopBtn.addEventListener('click', runGoToStop);
+if(goStopInput) goStopInput.addEventListener('keydown', function(e){ if(e.key==='Enter') runGoToStop(); });
+if(goSpeedInput) goSpeedInput.addEventListener('keydown', function(e){ if(e.key==='Enter') runGoToStop(); });
 setPlayUI(false);

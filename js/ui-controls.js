@@ -2,26 +2,18 @@
 const YRS=['1940','1941','1942','1944'];
 let yearOn={'1940':true,'1941':true,'1942':true,'1944':true};
 const voyageYears=V.voyages.map(function(_,vi){ const set={}; STOPS.forEach(function(s){ if(s._vi===vi) set[s.year]=true; }); return set; });
-function syncYearChips(){ const btns=document.querySelectorAll('.yfbtn'); const allOn=YRS.every(function(y){return yearOn[y];}); btns.forEach(function(b){ const y=b.getAttribute('data-year'); b.classList.toggle('on', y==='all'?allOn:!!yearOn[y]); }); }
+function syncYearChips(){ const btns=document.querySelectorAll('.yfbtn'); if(!btns.length) return; const allOn=YRS.every(function(y){return yearOn[y];}); btns.forEach(function(b){ const y=b.getAttribute('data-year'); b.classList.toggle('on', y==='all'?allOn:!!yearOn[y]); }); }
+function setYearPreset(years){
+  resetPlayback();
+  YRS.forEach(function(y){ yearOn[y]=years.indexOf(y)>=0; });
+  applyMarkerFilter();
+}
 function applyMarkerFilter(){
   if(engaged) return;
   markers.forEach(function(m,i){ const s=STOPS[i]; const show=!!yearOn[s.year]; if(show){ if(!map.hasLayer(m)) m.addTo(map); } else { if(map.hasLayer(m)) map.removeLayer(m); } });
   routeLayers.forEach(function(r,vi){ const anyOn=Object.keys(voyageYears[vi]).some(function(y){ return yearOn[y]; }); r.core.setStyle({opacity:anyOn?0.95:0}); if(r.casing) r.casing.setStyle({opacity:anyOn?0.7:0}); });
   syncYearChips();
 }
-(function(){
-  const btns=document.querySelectorAll('.yfbtn');
-  btns.forEach(function(btn){
-    const y=btn.getAttribute('data-year');
-    if(y!=='all' && C.years[y]) btn.style.color=C.years[y];
-    btn.addEventListener('click', function(){
-      resetPlayback();
-      if(y==='all'){ const allOn=YRS.every(function(yy){return yearOn[yy];}); const v=!allOn; YRS.forEach(function(yy){ yearOn[yy]=v; }); }
-      else { yearOn[y]=!yearOn[y]; }
-      applyMarkerFilter();
-    });
-  });
-})();
 
 const scrim=document.getElementById('scrim'), modal=document.getElementById('modal');
 function openNav(){ document.body.classList.add('nav-open'); scrim.classList.add('show'); }

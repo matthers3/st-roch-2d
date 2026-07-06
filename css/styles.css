@@ -81,6 +81,8 @@ body.familymode .map-wrap .leaflet-grab{cursor:url("data:image/svg+xml;base64,PH
 .map-wrap:fullscreen,.map-wrap:-webkit-full-screen{width:100%;height:100%;background:#0a1620}
 .map-wrap:fullscreen #map,.map-wrap:-webkit-full-screen #map{height:100%}
 #map{position:absolute;inset:0;background:#0a1620}
+/* map overlay chrome hidden — playback & settings live in the sidebar */
+.transport,.famtransport,.seekjump,.prefetch-pill,.leaflet-control-zoom,.leaflet-control-layers,.leaflet-control-scale,.mapctl-ctl{display:none!important}
 .leaflet-container{font-family:var(--sans)}
 .stop-div{background:none;border:none}
 .stop-marker{position:relative;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:500;color:#091722;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 6px rgba(0,0,0,.45);cursor:pointer;transition:transform .14s ease,box-shadow .14s ease}
@@ -155,6 +157,7 @@ body.editing .flybtn{opacity:.45;pointer-events:none}
 .ttime{font-family:var(--mono);font-size:11px;color:var(--text);min-width:88px;text-align:right;letter-spacing:.02em}
 .seekjump{position:absolute;left:50%;bottom:70px;transform:translateX(-50%);z-index:1250;display:flex;align-items:center;gap:8px;background:rgba(11,28,37,.92);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:14px;padding:7px 10px;box-shadow:0 14px 34px -14px rgba(0,0,0,.75)}
 .sj-input{width:64px;height:32px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--text);font-family:var(--mono);font-size:13px;text-align:center;padding:0 6px}
+.sj-input.sj-speed{width:52px}
 .sj-input:focus{outline:none;border-color:var(--brass)}
 .sj-go{height:32px;padding:0 16px;border:none;border-radius:9px;background:linear-gradient(180deg,#e7b658,#cf9a3c);color:#1a1206;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.08em;cursor:pointer;transition:filter .12s}
 .sj-go:hover{filter:brightness(1.05)}
@@ -167,7 +170,7 @@ body.editing .flybtn{opacity:.45;pointer-events:none}
 .fambtn{margin-top:14px;width:100%;background:linear-gradient(180deg,rgba(255,126,182,.16),rgba(255,90,60,.16));color:#ffd9e6;border:1px solid rgba(255,126,182,.5);border-radius:10px;padding:11px 10px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:border-color .12s,color .12s,background .12s}
 .fambtn:hover{border-color:rgba(255,126,182,.85);color:#fff}
 body.familymode .fambtn{background:rgba(255,90,60,.24);color:#fff;border-color:rgba(255,90,60,.75)}
-body.familymode .transport,body.familymode .seekjump,body.familymode .yffield,body.familymode .editbtn,body.familymode .flyrow,body.familymode .legend,body.familymode #timeline{display:none}
+body.familymode .transport,body.familymode .seekjump,body.familymode .editbtn,body.familymode .flyrow,body.familymode .legend,body.familymode #timeline{display:none}
 .famtransport{display:none}
 .famlegend{display:none}
 .famtimeline{display:none}
@@ -251,6 +254,13 @@ body.familymode .famfilter{display:flex;flex-wrap:wrap;gap:6px;padding:14px 14px
 .mapbtn{width:40px;height:40px;border-radius:10px;background:rgba(9,22,30,.96);backdrop-filter:blur(8px);border:1px solid rgba(150,186,201,.3);box-shadow:0 6px 18px -6px rgba(0,0,0,.7);color:var(--frost);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .12s,background .12s}
 .mapbtn:hover{border-color:rgba(150,186,201,.4);background:rgba(20,48,62,.85);color:#fff}
 .mapbtn.on{background:rgba(214,166,74,.25);border-color:rgba(214,166,74,.6);color:#fff}
+.journey-ctl{position:absolute;top:14px;right:14px;z-index:1200;display:flex;flex-direction:column;align-items:stretch;gap:8px;max-width:min(220px,calc(100% - 28px))}
+.journey-btn{background:rgba(9,22,30,.96);backdrop-filter:blur(8px);border:1px solid rgba(150,186,201,.3);border-radius:10px;padding:9px 14px;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.04em;color:var(--frost);cursor:pointer;text-align:left;box-shadow:0 6px 18px -6px rgba(0,0,0,.7);transition:border-color .12s,background .12s,color .12s}
+.journey-btn:hover{border-color:rgba(150,186,201,.45);background:rgba(20,48,62,.88);color:#fff}
+.journey-btn.on{color:#fff;box-shadow:0 8px 22px -8px rgba(0,0,0,.75)}
+.journey-btn--outbound.on{background:rgba(214,166,74,.28);border-color:rgba(214,166,74,.65)}
+.journey-btn--return.on{background:rgba(108,198,224,.22);border-color:rgba(108,198,224,.55)}
+.journey-btn--family.on{background:rgba(255,110,199,.22);border-color:rgba(255,110,199,.55)}
 .famtransport{border-color:rgba(255,110,199,.4)}
 .famtransport .tbtn.tplay.famplay{background:linear-gradient(180deg,#ff84cf,#e85ab0);color:#2a0c20}
 .famlegend{position:absolute;left:16px;top:84px;z-index:1180;background:rgba(11,24,31,.92);backdrop-filter:blur(10px);border:1px solid rgba(255,110,199,.35);border-radius:13px;padding:13px 15px;max-width:260px;box-shadow:0 14px 34px -14px rgba(0,0,0,.7)}
@@ -338,6 +348,7 @@ body.familymode .famfilter{display:flex;flex-wrap:wrap;gap:6px;padding:14px 14px
 /* ===== dual-screen: detail (follower) role ===== */
 body.role-detail .sidebar,
 body.role-detail .menu-btn,
+body.role-detail .journey-ctl,
 body.role-detail .transport,
 body.role-detail .seekjump,
 body.role-detail .famtransport,

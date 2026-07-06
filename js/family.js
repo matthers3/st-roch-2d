@@ -1,7 +1,6 @@
 /* ===== Panikpakuttuk family experience (v4) ===== */
 const FAM = VOYAGE.family || null;
 const FAM_KEYS=['st_roch','st_roch_1945','nascopie','sled'];
-const famBtn=document.getElementById('famBtn');
 const famPlayBtn=document.getElementById('famPlay'), famPrevBtn=document.getElementById('famPrev'), famNextBtn=document.getElementById('famNext');
 const famScrub=document.getElementById('famScrub'), famTime=document.getElementById('famTime');
 const famEditBtn=document.getElementById('famEditBtn'), famjsonEl=document.getElementById('famjson');
@@ -130,7 +129,6 @@ function enterFamily(){
   if(typeof editing!=='undefined' && editing) exitEdit();
   resetPlayback();
   familyMode=true; document.body.classList.add('familymode');
-  famBtn.innerHTML='Exit the family\u2019s journey';
   routeLayers.forEach(function(r){ r.core.setStyle({opacity:.16}); r.casing.setStyle({opacity:.10}); });
   hideLogCard(); famBuildLayers();
   famCurT=0; famPlaying=false; famEngaged=false; famLastReached=-2; famLastCardIdx=-2; famSetPlayUI(false);
@@ -144,7 +142,6 @@ function exitFamily(){
   if(famEditing) famExitEdit();
   familyMode=false; famPlaying=false; if(famRaf) cancelAnimationFrame(famRaf); famRaf=null;
   document.body.classList.remove('familymode');
-  famBtn.innerHTML='Panikpakuttuk family\u2019s journey';
   famTrailLayers().concat([famFull,famOnward,famShip]).forEach(function(l){ if(l&&map.hasLayer(l)) map.removeLayer(l); });
   famStopMarkers.forEach(function(m){ if(m&&map.hasLayer(m)) map.removeLayer(m); });
   famSideMarkers.forEach(function(g){ if(map.hasLayer(g)) map.removeLayer(g); });
@@ -155,8 +152,49 @@ function exitFamily(){
   if(readoutEl2) readoutEl2.classList.remove('show');
   if(!IS_DETAIL) map.fitBounds(bounds,{padding:[44,44]});
   if(IS_MASTER) syncSend({type:'frame', mode:'stroch', t:curT, playing:false});   // tell the detail screen to return to the St. Roch voyage
+  clearJourneySelect();
 }
-if(famBtn) famBtn.addEventListener('click',function(){ if(familyMode) exitFamily(); else enterFamily(); });
+
+/* ----- map journey selector (upper-right) ----- */
+let activeJourney=null;
+function syncJourneyUI(mode){
+  [['journeyOutbound','outbound'],['journeyReturn','return'],['journeyFamily','family']].forEach(function(pair){
+    const btn=document.getElementById(pair[0]);
+    if(!btn) return;
+    const on=mode===pair[1];
+    btn.classList.toggle('on', on);
+    btn.setAttribute('aria-pressed', on?'true':'false');
+  });
+}
+function clearJourneySelect(){ activeJourney=null; syncJourneyUI(null); }
+function selectJourney(mode){
+  if(mode===activeJourney) return;
+  famOverlayOn=false; famOverlayChip();
+  if(mode==='family'){
+    activeJourney='family';
+    syncJourneyUI('family');
+    if(!familyMode) enterFamily();
+    return;
+  }
+  if(familyMode) exitFamily();
+  activeJourney=mode;
+  syncJourneyUI(mode);
+  if(mode==='outbound') setYearPreset(['1940','1941','1942']);
+  else if(mode==='return') setYearPreset(['1944']);
+}
+function SelectJourney(n){
+  const mode={1:'outbound',2:'return',3:'family'}[Math.round(Number(n))];
+  if(mode) selectJourney(mode);
+}
+window.SelectJourney=SelectJourney;
+(function(){
+  if(IS_DETAIL) return;
+  [['journeyOutbound','outbound'],['journeyReturn','return'],['journeyFamily','family']].forEach(function(pair){
+    const btn=document.getElementById(pair[0]);
+    if(!btn) return;
+    btn.addEventListener('click', function(){ selectJourney(pair[1]); });
+  });
+})();
 if(famEditBtn) famEditBtn.addEventListener('click',function(){ if(famEditing) famExitEdit(); else famEnterEdit(); });
 if(famPlayBtn) famPlayBtn.addEventListener('click', famTogglePlay);
 if(famPrevBtn) famPrevBtn.addEventListener('click',function(){ famStep(-1); });
@@ -196,4 +234,3 @@ function showFamilyOverlay(){ if(!FAM) return; resetPlayback(); famBuildLayers()
 function hideFamilyOverlay(){ famOverlayOn=false; if(!familyMode && !famEditing){ if(famFull&&map.hasLayer(famFull)) map.removeLayer(famFull); if(famOnward&&map.hasLayer(famOnward)) map.removeLayer(famOnward); famStopMarkers.forEach(function(m){ if(m&&map.hasLayer(m)) map.removeLayer(m); }); famSideMarkers.forEach(function(g){ if(map.hasLayer(g)) map.removeLayer(g); }); YRS.forEach(function(y){ yearOn[y]=true; }); applyMarkerFilter(); } famOverlayChip(); }
 function toggleFamilyOverlay(){ if(famOverlayOn) hideFamilyOverlay(); else showFamilyOverlay(); }
 if(famRouteBtn) famRouteBtn.addEventListener('click', toggleFamilyOverlay);
-if(famBtn) famBtn.addEventListener('click', function(){ famOverlayOn=false; famOverlayChip(); });

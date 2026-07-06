@@ -10,21 +10,6 @@ const hillshade=L.tileLayer(ESRI+'Elevation/World_Hillshade/MapServer/tile/{z}/{
 const light=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:16,attribution:'&copy; OpenStreetMap &copy; CARTO'});
 const dark =L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:16,attribution:'&copy; OpenStreetMap &copy; CARTO'});
 const map=L.map('map',{layers:[ocean],minZoom:2,maxZoom:16,zoomControl:false,worldCopyJump:false,attributionControl:true});
-L.control.zoom({position:'bottomleft'}).addTo(map);
-L.control.scale({metric:true,imperial:true,position:'bottomleft'}).addTo(map);
-L.control.layers({'Ocean chart':ocean,'Satellite':sat,'Terrain':topo,'Light':light,'Night':dark},{'Shaded relief':hillshade,'Place labels':labels},{position:'topleft',collapsed:true}).addTo(map);
-(function(){
-  const FS_SVG='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg>';
-  const I_SVG='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5" stroke-linecap="round"/><circle cx="12" cy="7.6" r="1" fill="currentColor" stroke="none"/></svg>';
-  const DUAL_SVG='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"><rect x="2.5" y="6" width="11" height="8" rx="1.2"/><rect x="14.5" y="9" width="7" height="7" rx="1.2"/><path d="M6 17.5h4M8 14v3.5"/></svg>';
-  const Ctl=L.Control.extend({ options:{position:'topright'}, onAdd:function(){
-    const d=L.DomUtil.create('div','mapctl-ctl');
-    d.innerHTML='<button class="mapbtn" id="fsBtn" title="Full screen" aria-label="Toggle full screen">'+FS_SVG+'</button><button class="mapbtn" id="welcomeBtn" title="How to use this map" aria-label="How to use this map">'+I_SVG+'</button><button class="mapbtn" id="dualBtn" title="Open detail screen on a second display" aria-label="Open detail screen on a second display">'+DUAL_SVG+'</button>';
-    L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
-    return d;
-  }});
-  map.addControl(new Ctl());
-})();
 
 const STOPS=[], markers=[], itemEls=[], routeLayers=[], voyTrails=[];
 V.voyages.forEach(function(voy){

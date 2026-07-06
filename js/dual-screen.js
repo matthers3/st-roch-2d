@@ -67,15 +67,11 @@
         }
       });
       if(!urls.length) return;
-      const pill=el('div','prefetch-pill'); (document.querySelector('.map-wrap')||document.body).appendChild(pill);
       const total=urls.length; let done=0, idx=0, active=0;
-      function upd(){ pill.textContent='Caching Arctic charts · '+Math.round(done/total*100)+'%'; }
-      function fin(){ pill.textContent='Arctic charts ready'; pill.classList.add('done'); setTimeout(function(){ if(pill.parentNode) pill.parentNode.removeChild(pill); }, 1400); }
-      upd();
       function pump(){
         while(active<CONC && idx<total){
           active++; const img=new Image(); try{ img.fetchPriority='low'; }catch(_e){} img.decoding='async';
-          img.onload=img.onerror=function(){ active--; done++; if(done%12===0) upd(); if(done>=total){ upd(); fin(); } else pump(); };
+          img.onload=img.onerror=function(){ active--; done++; if(done>=total) return; pump(); };
           img.src=urls[idx++];
         }
       }

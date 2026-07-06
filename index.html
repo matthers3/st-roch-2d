@@ -25,7 +25,6 @@
         <button class="flybtn" id="flyBtn"><span class="ic"></span><span class="fly-label">St.&nbsp;Roch Northwest voyages</span></button>
         <button class="resetbtn" id="resetBtn" title="Reset">&#10227;</button>
       </div>
-      <button class="fambtn" id="famBtn">Panikpakuttuk family&rsquo;s journey</button>
       <div class="speedrow">
         <span class="speedlabel">Replay speed</span>
         <input type="range" id="speedSlider" min="0.1" max="3" step="0.05" value="1" aria-label="Replay speed">
@@ -33,16 +32,6 @@
       </div>
       <button class="editbtn" id="editBtn">Edit route</button>
       <div class="legend" id="legend"></div>
-      <div class="yffield">
-        <div class="yflabel">Show stops by year</div>
-        <div class="yearfilter" id="yearfilter">
-          <button class="yfbtn on" data-year="all">All</button>
-          <button class="yfbtn on" data-year="1940">1940</button>
-          <button class="yfbtn on" data-year="1941">1941</button>
-          <button class="yfbtn on" data-year="1942">1942</button>
-          <button class="yfbtn on" data-year="1944">1944</button>
-        </div>
-      </div>
       <div class="famstory-field">
         <button class="famstory-chip famroute-chip" id="famRouteBtn"><span class="fs-dot fs-route"></span><span>1944&ndash;1946 Panikpakuttuk route</span></button>
         <button class="famstory-chip" id="famStoryBtn"><span class="fs-dot"></span><span>Read the family&rsquo;s story</span></button>
@@ -57,6 +46,11 @@
   <div class="map-wrap">
     <div id="map"></div>
     <button class="mapbtn menu-btn" id="menuBtn" aria-label="Open voyage log">&#9776;</button>
+    <div class="journey-ctl" id="journeyCtl">
+      <button type="button" class="journey-btn journey-btn--outbound" id="journeyOutbound" aria-pressed="false">1940&ndash;1942</button>
+      <button type="button" class="journey-btn journey-btn--return" id="journeyReturn" aria-pressed="false">1944</button>
+      <button type="button" class="journey-btn journey-btn--family" id="journeyFamily" aria-pressed="false">Panikpakuttuk family</button>
+    </div>
     <div class="readout" id="readout"><div class="ro-date" id="ro-date"></div><div class="ro-status" id="ro-status"></div></div>
     <div class="detail-badge" id="detailBadge"><span class="live-dot"></span><span>Detail screen</span></div>
     <div class="logcard" id="logcard">
@@ -88,7 +82,8 @@
       </div>
     </div>
     <div class="seekjump" id="seekJump">
-      <input type="number" class="sj-input" id="goStopInput" min="0" value="0" aria-label="Stop number">
+      <input type="number" class="sj-input" id="goStopInput" min="0" value="0" aria-label="Stop number" title="Stop index">
+      <input type="number" class="sj-input sj-speed" id="goSpeedInput" min="0" step="0.1" value="1" aria-label="Speed" title="Speed (higher = faster)">
       <button class="sj-go" id="goStopBtn">GO</button>
     </div>
     <div class="transport" id="transport">
