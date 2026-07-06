@@ -6,7 +6,7 @@ const famScrub=document.getElementById('famScrub'), famTime=document.getElementB
 const famEditBtn=document.getElementById('famEditBtn'), famjsonEl=document.getElementById('famjson');
 const readoutEl2=document.getElementById('readout');
 let familyMode=false, famEngaged=false, famBuilt=false, famEditing=false;
-let famPlaying=false, famRaf=null, famCurT=0, famLastTs=0, famScrubbing=false, famTotalT=0;
+let famPlaying=false, famRaf=null, famCurT=0, famLastTs=0, famScrubbing=false, famTotalT=0, famSuppressFollow=false;
 let famSegs=[], famStops=[], famStopMarkers=[], famSideMarkers=[], famTiEls=[], famHandles=[], famLastReached=-2, famLastCardIdx=-2, famShipKey=null;
 let famFull=null, famOnward=null, famTrails=null, famShip=null, famShipInner=null;
 let famFilter={aboard:true, st_roch45:true, sled:true, nascopie:true, est:true};
@@ -68,7 +68,7 @@ function famRenderFrame(t){
       else { map.setView(st.ll, DETAIL_Z, {animate:false}); _detailZoomed=true; }
     }
   }
-  else if(!reduceMotion && familyMode && !userZooming){ map.panTo(st.ll,{animate:false}); }
+  else if(!reduceMotion && familyMode && !userZooming && !famSuppressFollow){ map.panTo(st.ll,{animate:false}); }
   famRevealUpTo(st.reached);
   if(st.reached>=0 && st.reached!==famLastCardIdx){ famLastCardIdx=st.reached; famShowLogCard(famStops[st.reached]); }
   let small;
@@ -109,7 +109,54 @@ function famPause(){ famPlaying=false; if(famRaf) cancelAnimationFrame(famRaf); 
 function famTogglePlay(){ if(famPlaying) famPause(); else famPlayStart(); }
 function famTick(ts){ if(!famPlaying) return; if(!famLastTs) famLastTs=ts; const dt=(ts-famLastTs)*speedMul; famLastTs=ts; famCurT+=dt; if(famCurT>=famTotalT){ famCurT=famTotalT; famRenderFrame(famCurT); famPause(); return; } famRenderFrame(famCurT); famRaf=requestAnimationFrame(famTick); }
 function famSeek(t){ if(famEditing) return; famShowPlay(); famCurT=Math.max(0,Math.min(t,famTotalT)); famRenderFrame(famCurT); if(famPlaying) famLastTs=0; }
-function famStep(dir){ const r=famStateAt(famCurT).reached; const target=Math.max(0,Math.min(famStops.length-1,(r<0?0:r)+dir)); famSeek(famStops[target].t+1); }
+function famStep(dir){ const r=famStateAt(famCurT).reached; const target=Math.max(0,Math.min(famStops.length-1,(r<0?0:r)+dir)); famSeek(famStops[target].t+1); voyageStopPos[3]=target; }
+
+let famGoRaf=null;
+function goToFamilyStop(idx, speed){
+  if(famEditing) return;
+  famBuildLayers();
+  idx=Math.max(0, Math.min(famStops.length-1, Math.round(Number(idx)||0)));
+  voyageStopPos[3]=idx;
+  const spd=(Number(speed)>0)?Number(speed):1;
+  famPause();
+  if(famGoRaf){ cancelAnimationFrame(famGoRaf); famGoRaf=null; }
+  famShowPlay();
+  const st0=famStateAt(famCurT);
+  const followZ=IS_DETAIL?DETAIL_Z:FOLLOW_Z;
+  if(IS_DETAIL){ _detailZoomed=false; map.setView(st0.ll, followZ, {animate:false}); _detailZoomed=true; }
+  else { map.setView(st0.ll, followZ, {animate:false}); }
+  const startT=famCurT, endT=famStops[idx].t+1;
+  const fromIdx=Math.max(0, famStateAt(famCurT).reached);
+  if(Math.abs(idx-fromIdx)>2){
+    const DUR=2000/spd;
+    const ease=function(x){ return x<0.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2; };
+    famSuppressFollow=true;
+    if(!reduceMotion) map.setView([famStops[idx].lat,famStops[idx].lng], followZ, {animate:true, duration:DUR/1000});
+    let s0=null;
+    function step(ts){
+      if(s0===null) s0=ts;
+      const p=Math.min((ts-s0)/DUR,1);
+      famCurT=startT+(endT-startT)*ease(p);
+      famRenderFrame(famCurT);
+      if(p<1){ famGoRaf=requestAnimationFrame(step); }
+      else { famGoRaf=null; famCurT=endT; famRenderFrame(famCurT); famSuppressFollow=false; }
+    }
+    famGoRaf=requestAnimationFrame(step);
+  } else {
+    const dir=endT>=startT?1:-1;
+    let lt=0;
+    function step(ts){
+      if(!lt) lt=ts;
+      const dt=(ts-lt)*speedMul*spd; lt=ts;
+      famCurT+=dir*dt;
+      if((dir>0 && famCurT>=endT) || (dir<0 && famCurT<=endT)){ famCurT=endT; famRenderFrame(famCurT); famGoRaf=null; return; }
+      famRenderFrame(famCurT);
+      famGoRaf=requestAnimationFrame(step);
+    }
+    famGoRaf=requestAnimationFrame(step);
+  }
+}
+window.goToFamilyStop=goToFamilyStop;
 
 /* ---- family editor ---- */
 function famRefreshJSON(){ if(famjsonEl) famjsonEl.value=famExportJSON(); }
@@ -174,6 +221,7 @@ function selectJourney(mode){
     activeJourney='family';
     syncJourneyUI('family');
     if(!familyMode) enterFamily();
+    syncGoVoyageInput(3);
     return;
   }
   if(familyMode) exitFamily();
@@ -181,7 +229,9 @@ function selectJourney(mode){
   syncJourneyUI(mode);
   if(mode==='outbound') setYearPreset(['1940','1941','1942']);
   else if(mode==='return') setYearPreset(['1944']);
+  syncGoVoyageInput(journeyNum(mode));
 }
+function syncGoVoyageInput(v){ const el=document.getElementById('goVoyageInput'); if(el && v) el.value=String(v); }
 function SelectJourney(n){
   const mode={1:'outbound',2:'return',3:'family'}[Math.round(Number(n))];
   if(mode) selectJourney(mode);

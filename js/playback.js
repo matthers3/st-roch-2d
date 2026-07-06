@@ -201,29 +201,54 @@ function pause(){ playing=false; if(raf) cancelAnimationFrame(raf); raf=null; se
 function togglePlay(){ if(editing) return; if(playing) pause(); else play(); }
 function seekTo(t){ engage(); curT=Math.max(0,Math.min(t,totalT)); renderFrame(curT); if(playing) lastTs=0; }
 function stepStop(dir){ const r=Math.max(0,stateAt(curT).reached); const target=Math.max(0,Math.min(STOPS.length-1, r+dir)); seekTo(reachTimeArr[target]+0.001); }
+
+/* ----- voyage-relative stop indices (1=1940–42, 2=1944, 3=family) ----- */
+const VOY_STOP_IDX=[[],[]];
+STOPS.forEach(function(s,i){ VOY_STOP_IDX[s._vi].push(i); });
+let voyageStopPos={1:0,2:0,3:0};
+function journeyNum(mode){ return {outbound:1,return:2,family:3}[mode]||null; }
+function resolveStrochStop(voyage, localIdx){
+  const vi=voyage===1?0:1, list=VOY_STOP_IDX[vi];
+  if(!list.length) return null;
+  const local=Math.max(0, Math.min(list.length-1, Math.round(Number(localIdx)||0)));
+  return {globalIdx:list[local], localIdx:local};
+}
+function ensureJourney(voyage){
+  const mode={1:'outbound',2:'return',3:'family'}[voyage];
+  if(!mode || typeof selectJourney!=='function') return;
+  if(activeJourney!==mode) selectJourney(mode);
+  else if(voyage===3 && !familyMode) selectJourney('family');
+}
+function strochVoyageLocalIdx(voyage, globalReached){
+  const list=VOY_STOP_IDX[voyage===1?0:1];
+  for(let i=0;i<list.length;i++){ if(list[i]===globalReached) return i; if(list[i]>globalReached) return Math.max(0,i-1); }
+  return Math.max(0, list.length-1);
+}
+
 /* ----- jump to a chronological stop ----- */
 /* far jumps (>2 stops away) snap over a fixed 2 seconds; close jumps travel at normal voyage speed.
+   voyage: 1=1940–42, 2=1944, 3=family. idx: stop index within that voyage (0 = first stop).
    speed: optional float multiplier on the movement (higher = faster, defaults to 1). */
 let goRaf=null;
-function goToStop(idx, speed){
+function goToStrochStop(globalIdx, speed){
   if(editing) return;
-  idx=Math.max(0, Math.min(STOPS.length-1, Math.round(Number(idx)||0)));
-  const spd=(Number(speed)>0)?Number(speed):1; // movement speed multiplier (higher = faster)
-  pause();                                   // stop the normal play loop
+  globalIdx=Math.max(0, Math.min(STOPS.length-1, Math.round(Number(globalIdx)||0)));
+  const spd=(Number(speed)>0)?Number(speed):1;
+  pause();
   if(goRaf){ cancelAnimationFrame(goRaf); goRaf=null; }
-  engage();                                  // reveal ship + voyage trail
+  engage();
   const st0=stateAt(curT);
   if(IS_DETAIL){ _detailZoomed=false; map.setView(st0.ll, DETAIL_Z, {animate:false}); _detailZoomed=true; }
   else { map.setView(st0.ll, FOLLOW_Z, {animate:false}); }
-  const startT=curT, endT=reachTimeArr[idx];
+  const startT=curT, endT=reachTimeArr[globalIdx];
   const fromIdx=Math.max(0, stateAt(curT).reached);
-  if(Math.abs(idx-fromIdx)>2){
-    const DUR=2000/spd;                      // far away: 2 seconds at speed 1, scaled by spd
-    const ease=function(x){ return x<0.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2; }; // easeInOutCubic
-    suppressFollow=true;                     // don't chase the ship; glide straight to the destination
+  if(Math.abs(globalIdx-fromIdx)>2){
+    const DUR=2000/spd;
+    const ease=function(x){ return x<0.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2; };
+    suppressFollow=true;
     if(!reduceMotion){
       const z=IS_DETAIL?DETAIL_Z:FOLLOW_Z;
-      map.setView([STOPS[idx].lat,STOPS[idx].lng], z, {animate:true, duration:DUR/1000});
+      map.setView([STOPS[globalIdx].lat,STOPS[globalIdx].lng], z, {animate:true, duration:DUR/1000});
     }
     let s0=null;
     function step(ts){
@@ -236,7 +261,7 @@ function goToStop(idx, speed){
     }
     goRaf=requestAnimationFrame(step);
   } else {
-    const dir=endT>=startT?1:-1;             // close: travel at the natural voyage pace, scaled by spd
+    const dir=endT>=startT?1:-1;
     let lt=0;
     function step(ts){
       if(!lt) lt=ts;
@@ -249,6 +274,33 @@ function goToStop(idx, speed){
     goRaf=requestAnimationFrame(step);
   }
 }
+function goToStop(voyage, idx, speed){
+  voyage=Math.max(1, Math.min(3, Math.round(Number(voyage)||1)));
+  idx=Math.max(0, Math.round(Number(idx)||0));
+  ensureJourney(voyage);
+  if(voyage===3){
+    if(typeof goToFamilyStop==='function') goToFamilyStop(idx, speed);
+    return;
+  }
+  const resolved=resolveStrochStop(voyage, idx);
+  if(!resolved) return;
+  voyageStopPos[voyage]=resolved.localIdx;
+  goToStrochStop(resolved.globalIdx, speed);
+}
+function stepVoyageStop(dir){
+  let voyage=journeyNum(activeJourney)||1;
+  if(voyage===3){
+    const cur=Math.max(0, familyMode?famStateAt(famCurT).reached:0);
+    const max=(typeof famStops!=='undefined'&&famStops.length)?famStops.length-1:0;
+    goToStop(3, Math.max(0, Math.min(max, cur+dir)));
+    return;
+  }
+  const list=VOY_STOP_IDX[voyage===1?0:1];
+  if(!list.length) return;
+  const cur=strochVoyageLocalIdx(voyage, Math.max(0, stateAt(curT).reached));
+  goToStop(voyage, Math.max(0, Math.min(list.length-1, cur+dir)));
+}
+window.GoToStop=goToStop;
 flyBtn.addEventListener('click', togglePlay);
 resetBtn.addEventListener('click', resetPlayback);
 if(tPlay) tPlay.addEventListener('click', togglePlay);
@@ -259,9 +311,13 @@ if(tScrub){
   tScrub.addEventListener('change', function(){ scrubbing=false; if(playing) lastTs=0; });
   tScrub.addEventListener('pointerup', function(){ scrubbing=false; });
 }
-const goStopInput=document.getElementById('goStopInput'), goSpeedInput=document.getElementById('goSpeedInput'), goStopBtn=document.getElementById('goStopBtn');
-function runGoToStop(){ goToStop(parseInt(goStopInput.value,10), goSpeedInput?parseFloat(goSpeedInput.value):1); }
+const goVoyageInput=document.getElementById('goVoyageInput'), goStopInput=document.getElementById('goStopInput'), goSpeedInput=document.getElementById('goSpeedInput'), goStopBtn=document.getElementById('goStopBtn');
+function runGoToStop(){ goToStop(parseInt(goVoyageInput.value,10)||1, parseInt(goStopInput.value,10), goSpeedInput?parseFloat(goSpeedInput.value):1); }
 if(goStopBtn)   goStopBtn.addEventListener('click', runGoToStop);
 if(goStopInput) goStopInput.addEventListener('keydown', function(e){ if(e.key==='Enter') runGoToStop(); });
 if(goSpeedInput) goSpeedInput.addEventListener('keydown', function(e){ if(e.key==='Enter') runGoToStop(); });
+if(goVoyageInput) goVoyageInput.addEventListener('keydown', function(e){ if(e.key==='Enter') runGoToStop(); });
+const stopPrev=document.getElementById('stopPrev'), stopNext=document.getElementById('stopNext');
+if(stopPrev) stopPrev.addEventListener('click', function(){ stepVoyageStop(-1); });
+if(stopNext) stopNext.addEventListener('click', function(){ stepVoyageStop(1); });
 setPlayUI(false);
