@@ -59,3 +59,18 @@ function makePopup(s,voy){
   w.append(d);
   return w;
 }
+
+/* ----- basemap switching (JSMethods) ----- */
+function setMapBasemap(key){
+  [ocean,sat,topo,light,dark].forEach(function(layer){
+    if(map.hasLayer(layer)) map.removeLayer(layer);
+  });
+  if(map.hasLayer(hillshade)) map.removeLayer(hillshade);
+  if(map.hasLayer(labels)) map.removeLayer(labels);
+  const layer={ocean:ocean,sat:sat,topo:topo,light:light,dark:dark}[key]||ocean;
+  layer.addTo(map);
+}
+function SetRealisticMap(on){
+  setMapBasemap(on===false?'ocean':'sat');
+}
+window.SetRealisticMap=SetRealisticMap;
