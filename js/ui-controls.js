@@ -13,7 +13,7 @@ function applyMarkerFilter(){
   markers.forEach(function(m,i){ const s=STOPS[i]; const show=!!yearOn[s.year]; if(show){ if(!map.hasLayer(m)) m.addTo(map); } else { if(map.hasLayer(m)) map.removeLayer(m); } });
   routeLayers.forEach(function(r,vi){ const anyOn=Object.keys(voyageYears[vi]).some(function(y){ return yearOn[y]; }); r.core.setStyle({opacity:anyOn?0.95:0}); if(r.casing) r.casing.setStyle({opacity:anyOn?0.7:0}); });
   syncYearChips();
-}
+} 
 
 const scrim=document.getElementById('scrim'), modal=document.getElementById('modal');
 function openNav(){ document.body.classList.add('nav-open'); scrim.classList.add('show'); }
