@@ -111,6 +111,24 @@ function famTick(ts){ if(!famPlaying) return; if(!famLastTs) famLastTs=ts; const
 function famSeek(t){ if(famEditing) return; famShowPlay(); famCurT=Math.max(0,Math.min(t,famTotalT)); famRenderFrame(famCurT); if(famPlaying) famLastTs=0; }
 function famStep(dir){ const r=famStateAt(famCurT).reached; const target=Math.max(0,Math.min(famStops.length-1,(r<0?0:r)+dir)); famSeek(famStops[target].t+1); voyageStopPos[3]=target; }
 
+/* Advance timeline linearly during goToStop, skipping dwell segments (winter
+   pauses) so movement matches the ship voyages — icon moves only while travelling. */
+function famAdvanceGoTo(cur, dt, dir, endT){
+  let t=cur, budget=dt;
+  while(budget>0 && ((dir>0 && t<endT) || (dir<0 && t>endT))){
+    const seg=famSegs[famSegAt(t)];
+    if(seg.kind==='dwell'){
+      t=dir>0 ? Math.min(seg.t0+seg.dur, endT) : Math.max(seg.t0, endT);
+      continue;
+    }
+    const limit=dir>0 ? Math.min(seg.t0+seg.dur, endT) : Math.max(seg.t0, endT);
+    const step=Math.min(budget, Math.abs(limit-t));
+    t+=dir*step;
+    budget-=step;
+  }
+  return dir>0 ? Math.min(t, endT) : Math.max(t, endT);
+}
+
 let famGoRaf=null;
 function goToFamilyStop(idx, speed){
   if(famEditing) return;
@@ -148,7 +166,7 @@ function goToFamilyStop(idx, speed){
     function step(ts){
       if(!lt) lt=ts;
       const dt=(ts-lt)*speedMul*spd; lt=ts;
-      famCurT+=dir*dt;
+      famCurT=famAdvanceGoTo(famCurT, dt, dir, endT);
       if((dir>0 && famCurT>=endT) || (dir<0 && famCurT<=endT)){ famCurT=endT; famRenderFrame(famCurT); famGoRaf=null; return; }
       famRenderFrame(famCurT);
       famGoRaf=requestAnimationFrame(step);

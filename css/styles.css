@@ -82,7 +82,7 @@ body.familymode .map-wrap .leaflet-grab{cursor:url("data:image/svg+xml;base64,PH
 .map-wrap:fullscreen #map,.map-wrap:-webkit-full-screen #map{height:100%}
 #map{position:absolute;inset:0;background:#0a1620}
 /* map overlay chrome hidden — playback & settings live in the sidebar */
-.transport,.famtransport,.seekjump,.prefetch-pill,.leaflet-control-zoom,.leaflet-control-layers,.leaflet-control-scale,.mapctl-ctl{display:none!important}
+.transport,.famtransport,.seekjump,.prefetch-pill,.journey-ctl,.famlegend,.logcard,.leaflet-control-zoom,.leaflet-control-layers,.leaflet-control-scale,.mapctl-ctl{display:none!important}
 .leaflet-container{font-family:var(--sans)}
 .stop-div{background:none;border:none}
 .stop-marker{position:relative;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:500;color:#091722;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 6px rgba(0,0,0,.45);cursor:pointer;transition:transform .14s ease,box-shadow .14s ease}
@@ -181,7 +181,6 @@ body.familymode .transport,body.familymode .seekjump,body.familymode .editbtn,bo
 .famedit-btn{display:none}
 .famedit-panel{display:none}
 body.familymode .famtransport{display:flex}
-body.familymode .famlegend{display:block}
 body.familymode .famtimeline{display:block;padding:4px 14px 30px}
 body.familymode .famedit-btn{display:block;margin-top:12px;width:100%;background:rgba(255,94,168,.14);color:#ffd9ee;border:1px solid rgba(255,94,168,.5);border-radius:9px;padding:9px;font-family:var(--sans);font-size:12.5px;cursor:pointer}
 body.familymode .famedit-btn:hover{border-color:rgba(255,94,168,.8);color:#fff}
